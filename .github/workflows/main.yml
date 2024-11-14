@@ -1,0 +1,78 @@
+name: Flutter
+
+on:
+  # Executa essa ação quando houver um push na branch "main"
+  push:
+    branches: ["main"]
+  # Executa essa ação quando um pull request for criado para a branch "main"
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  flutter_job:
+    # Define o ambiente da máquina virtual onde o job será executado
+    # Pode-se usar windows-latest ou ubuntu-latest
+    # Neste caso, escolhemos ubuntu-latest
+    runs-on: ubuntu-latest
+
+    steps:
+      # Passo 1: Clona o repositório do projeto na máquina virtual
+      - uses: actions/checkout@v4
+
+      # Passo 2: Instala o Flutter e as dependências relacionadas nesta máquina
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          # flutter-version: '3.16.8'
+          # ^ Caso queira usar uma versão específica do Flutter, descomente a linha acima e defina a versão
+
+      # Passo 3: Instala as dependências do projeto através do pub
+      - name: Instalar dependências
+        run: flutter pub get
+
+      # Passo 4: Verifica por erros semânticos no código (opcional)
+      # - name: Analisar o código do projeto
+      #   run: flutter analyze
+
+      # Passo 5: Executa os testes unitários
+      - name: Run tests
+        run: flutter test
+
+      # Passo 6: Decodifica as credenciais do Google Drive (somente para eventos de push)
+      - name: Decode Google Drive credentials
+        if: github.event_name == 'push'
+        run: echo "${{secrets.SERVICE_ACCOUNT_GOOGLE_CREDENTIALS}}" | base64 -d > /home/runner/drive_key.json
+
+      # Passo 7: Cria o APK do aplicativo (somente para eventos de push)
+      - name: Build APK
+        if: github.event_name == 'push'
+        run: flutter build apk --release
+
+      # Passo 8: Instala o Fastlane (somente para eventos de push)
+      - name: Install Fastlane
+        if: github.event_name == 'push'
+        run: sudo gem install fastlane -NV
+
+      # Passo 9: Instala o Bundler e configura o ambiente Ruby (evita problemas de dependências)
+      - name: Install bundler
+        working-directory: ./android
+        run: |
+          sudo gem install bundler
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      # Passo 10: Instala os plugins necessários do Fastlane (somente para eventos de push)
+      - name: Install Fastlane Plugins
+        if: github.event_name == 'push'
+        working-directory: ./android
+        run: bundle exec fastlane install_plugins
+
+      # Passo 11: Realiza o upload do APK para o Google Drive (somente para eventos de push)
+      - name: Upload to Google Drive
+        if: github.event_name == 'push'
+        working-directory: ./android
+        run: bundle exec fastlane android upload_to_drive
+        env:
+          SERVICE_ACCOUNT_GOOGLE_CREDENTIALS: ${{ secrets.SERVICE_ACCOUNT_GOOGLE_CREDENTIALS }}
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
