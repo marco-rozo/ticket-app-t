@@ -1,8 +1,6 @@
 import 'package:code_bar_reader_base/core/theme/components/custom_bottom_sheet/custom_bottom_sheet.dart';
-import 'package:code_bar_reader_base/core/theme/components/custom_button/custom_button.dart';
 import 'package:code_bar_reader_base/core/theme/components/custom_generic_loading.dart/custom_generic_loading_widget.dart';
 import 'package:code_bar_reader_base/core/theme/components/custom_snackbar/custom_snackbar.dart';
-import 'package:code_bar_reader_base/core/theme/components/custom_text_form_field/custom_text_form_field.dart';
 import 'package:code_bar_reader_base/modules/ticket_scanner/feature/presenter/cubit/ticket_scanner_cubit.dart';
 import 'package:code_bar_reader_base/modules/ticket_scanner/feature/presenter/widget/manual_insertion_body/manual_insertion_body_widget.dart';
 import 'package:code_bar_reader_base/modules/ticket_scanner/feature/presenter/widget/ticket_scanner_body/ticket_scanner_body_widget.dart';
